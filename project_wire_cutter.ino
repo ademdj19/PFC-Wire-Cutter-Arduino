@@ -1,26 +1,26 @@
 /*=============================================================================
- |   Assignment:  wire cutter arduino project
- |
- |       Author:  Adem Djekaoua
- |     Language:  Arduino C
- |
- |        Class:  End of Cycle Project
- |   Instructor:  Bouhafs ALi
- |     Due Date:  Saturday 05/03/2022
- |  Github Repo:  https://github.com/ademdj19/PFC-Wire-Cutter-Arduino
- +-----------------------------------------------------------------------------
- |
- |  Description:  this program is meant do drive a wire cutting
- |                arduino based contraption along with handeling
- |                lcd "16x2" interface with 4 buttons and 1 stepper 
- |                + 1 servo motors
- |
- |
- |   Known Bugs:  the user input handeling IS NOT event based meaning
- |                there is no coroutines involved in executing nor 
- |                getting user input
- |
- *===========================================================================*/
+  |   Assignment:  wire cutter arduino project
+  |
+  |       Author:  Adem Djekaoua
+  |     Language:  Arduino C
+  |
+  |        Class:  End of Cycle Project
+  |   Instructor:  Bouhafs ALi
+  |     Due Date:  Saturday 05/03/2022
+  |  Github Repo:  https://github.com/ademdj19/PFC-Wire-Cutter-Arduino
+  +-----------------------------------------------------------------------------
+  |
+  |  Description:  this program is meant do drive a wire cutting
+  |                arduino based contraption along with handeling
+  |                lcd "16x2" interface with 4 buttons and 1 stepper
+  |                + 1 servo motors
+  |
+  |
+  |   Known Bugs:  the user input handeling IS NOT event based meaning
+  |                there is no coroutines involved in executing nor
+  |                getting user input
+  |
+  ===========================================================================*/
 
 
 
@@ -70,9 +70,12 @@ byte LEFT[8] = {
   0b00000
 };
 //----------------
-Servo servoMotor;
+// define liquid crystal display
 const int rs = 12, en = 11, d4 = 5, d5 = 4, d6 = 3, d7 = 2;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
+// define motors specifications
+Servo servoMotor;
+
 int value = 0;
 int stepper_pins[] = {10, 9, 8, 7};
 int step_order[][4] = {
@@ -81,6 +84,7 @@ int step_order[][4] = {
   {LOW, HIGH, LOW, HIGH},
   {HIGH, LOW, LOW, HIGH}
 };
+// define global variables used in program
 int WireLength = 50;
 int prl = 0;
 int WireCount = 3;
@@ -89,10 +93,13 @@ boolean MODIFY_LENGTH = true;
 boolean MODIFY_UNIT = false;
 boolean MODIFY_COUNT = false;
 boolean SHIFTING = false;
+boolean START_CYCLE_PR = false;
+boolean START_CYCLE = false;
 String units[] = {"mm", "cm", "dm", "m"};
 float units_co[] = {0.001, 0.01, 0.1, 1};
 String unit = "mm";
 String pru = "";
+// setup
 void setup() {
   Serial.begin(9600);
   // declaring costum chars
@@ -121,10 +128,23 @@ void loop() {
     shift_modifiers(bt);
   }
   Serial.println(String(MODIFY_LENGTH) + " | " + String(MODIFY_UNIT) + " | " + String(MODIFY_COUNT));
+  if (START_CYCLE) {
+    for (int i = 0 ; i < WireCount; i++) {
+      move_wire(1,"mm");
+      cut();
+      lcd.setCursor(0,0);
+      lcd.print(String(i)+"           ");
+    }
+    START_CYCLE = false;
+  }
 }
 // lcd Scenes
 void Scene1() {
-  // this virtual page is responsible for setting the length and unit
+  /*
+     this virtual page is responsible
+     for setting the length and unit
+
+  */
   if (prl != WireLength || prc != WireCount || SHIFTING || pru != unit) {
     lcd.clear();
     lcd.setCursor(0, 0);
@@ -134,6 +154,7 @@ void Scene1() {
     if (MODIFY_LENGTH)lcd.print("Length L");
     if (MODIFY_UNIT)lcd.print("Unit " + unit);
     if (MODIFY_COUNT)lcd.print("Count N");
+    if (START_CYCLE_PR)lcd.print("Press up to start");
     lcd.write((byte)3);
     lcd.setCursor(15, 0);
     lcd.write((byte)0);
@@ -202,19 +223,23 @@ void modify_values(int dir) {
     } else if (dir == 1 && WireCount > 0) {
       WireCount -= 1;
     }
+  } else if (START_CYCLE_PR) {
+    if (dir == 0)START_CYCLE = true;
   }
   delay(300);
 }
 void shift_modifiers(int dir) {
-  boolean stat[] = {MODIFY_UNIT, MODIFY_COUNT, MODIFY_LENGTH};
+  boolean stat[] = {MODIFY_UNIT, MODIFY_COUNT, START_CYCLE_PR, MODIFY_LENGTH};
   if (dir == 3) {
     MODIFY_LENGTH = stat[0];
     MODIFY_UNIT = stat[1];
     MODIFY_COUNT = stat[2];
-  }else{
-    MODIFY_LENGTH = stat[1];
-    MODIFY_UNIT = stat[2];
-    MODIFY_COUNT = stat[0];
+    START_CYCLE_PR = stat[3];
+  } else {
+    MODIFY_LENGTH = stat[2];
+    MODIFY_UNIT = stat[3];
+    MODIFY_COUNT = stat[1];
+    START_CYCLE_PR = stat[0];
   }
   SHIFTING = true;
   delay(300);
@@ -222,4 +247,11 @@ void shift_modifiers(int dir) {
 }
 void make_sound(int note) {
 
+}
+void move_wire(int length_, String unit) {
+  // do conversions to how many steps for length_
+  // move stepper s amount of steps
+  for (int i = 0; i < 20; i++) {
+    stepDir(1) ;
+  }
 }
