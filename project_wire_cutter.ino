@@ -1,3 +1,30 @@
+/*=============================================================================
+ |   Assignment:  wire cutter arduino project
+ |
+ |       Author:  Adem Djekaoua
+ |     Language:  Arduino C
+ |
+ |        Class:  End of Cycle Project
+ |   Instructor:  Bouhafs ALi
+ |     Due Date:  Saturday 05/03/2022
+ |  Github Repo:  https://github.com/ademdj19/PFC-Wire-Cutter-Arduino
+ +-----------------------------------------------------------------------------
+ |
+ |  Description:  this program is meant do drive a wire cutting
+ |                arduino based contraption along with handeling
+ |                lcd "16x2" interface with 4 buttons and 1 stepper 
+ |                + 1 servo motors
+ |
+ |
+ |   Known Bugs:  the user input handeling IS NOT event based meaning
+ |                there is no coroutines involved in executing nor 
+ |                getting user input
+ |
+ *===========================================================================*/
+
+
+
+
 #include <LiquidCrystal.h>
 #include <Servo.h>
 #include "pitches.h"
